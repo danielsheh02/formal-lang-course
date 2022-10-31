@@ -15,7 +15,7 @@ class RSM:
 
     @classmethod
     def ecfg_to_rsm(cls, ecfg: ECFG):
-        boxes = dict()
+        boxes: dict = {}
         for key, value in ecfg.productions.items():
             boxes[key] = value.to_epsilon_nfa().to_deterministic()
         return cls(ecfg.start_symbol, boxes)

@@ -19,7 +19,7 @@ class ECFG:
 
     @classmethod
     def cfg_to_ecfg(cls, cfg: CFG):
-        productions = dict[Variable, PythonRegex]()
+        productions: dict = {}
         for prod in cfg.productions:
             body = PythonRegex(
                 " ".join(symb.value for symb in prod.body) if len(prod.body) > 0 else ""
