@@ -1,3 +1,5 @@
+from typing import AbstractSet
+
 from pyformlang.cfg import Variable, Terminal, CFG
 from pyformlang.regular_expression import PythonRegex
 
@@ -5,8 +7,8 @@ from pyformlang.regular_expression import PythonRegex
 class ECFG:
     def __init__(
         self,
-        variables: set[Variable],
-        terminals: set[Terminal],
+        variables: AbstractSet[Variable],
+        terminals: AbstractSet[Terminal],
         start_symbol: Variable,
         productions: dict[Variable, PythonRegex],
     ):
