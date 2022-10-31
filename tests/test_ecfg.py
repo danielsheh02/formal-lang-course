@@ -46,4 +46,6 @@ def test_cfg_to_ecfg(path_to_file, ecfg_prod_exp):
     for key in ecfg_prod_exp.keys():
         min_dfa = create_min_dfa_by_regex(ecfg.productions[key])
         min_dfa_exp = create_min_dfa_by_regex(ecfg_prod_exp[key])
+        if min_dfa.is_empty() and min_dfa_exp.is_empty():
+            continue
         assert min_dfa_exp.is_equivalent_to(min_dfa)

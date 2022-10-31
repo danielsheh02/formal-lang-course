@@ -46,4 +46,6 @@ def test_ecfg_rsm(path_to_file, prod_exp):
     rsm = RSM.ecfg_to_rsm(ECFG.cfg_to_ecfg(cfg))
     for key in prod_exp.keys():
         dfa_exp = create_min_dfa_by_regex(prod_exp[key])
+        if rsm.boxes[key].is_empty() and dfa_exp.is_empty():
+            continue
         assert rsm.boxes[key].is_equivalent_to(dfa_exp)
