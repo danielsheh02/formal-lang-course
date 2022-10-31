@@ -10,7 +10,7 @@ class ECFG:
         variables: AbstractSet[Variable],
         terminals: AbstractSet[Terminal],
         start_symbol: Variable,
-        productions: dict[Variable, PythonRegex],
+        productions: dict,
     ):
         self.variables = variables
         self.terminals = terminals
