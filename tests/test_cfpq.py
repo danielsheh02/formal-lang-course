@@ -4,16 +4,16 @@ from project.cfpq import *
 
 
 @pytest.mark.parametrize(
-    "cfg_str, graph_edges, expected_cfpq, expected_res_alg, start_nodes, final_nodes, alg_type",
+    "cfg_str, graph_edges, expected_cfpq, expected_hellings, start_nodes, final_nodes",
     [
         (
             """
-                            S -> A B
-                            S -> A C
-                            C -> S B
-                            A -> a
-                            B -> b
-                        """,
+                        S -> A B
+                        S -> A C
+                        C -> S B
+                        A -> a
+                        B -> b
+                    """,
             [
                 (0, 1, {"label": "a"}),
                 (1, 2, {"label": "a"}),
@@ -43,16 +43,15 @@ from project.cfpq import *
             ],
             None,
             None,
-            {"hellings", "matrix"},
         ),
         (
             """
-                            S -> A B
-                            S -> A C
-                            C -> S B
-                            A -> a
-                            B -> b
-                        """,
+                        S -> A B
+                        S -> A C
+                        C -> S B
+                        A -> a
+                        B -> b
+                    """,
             [
                 (0, 1, {"label": "a"}),
                 (1, 2, {"label": "a"}),
@@ -82,27 +81,16 @@ from project.cfpq import *
             ],
             {0, 2},
             {3},
-            {"hellings", "matrix"},
         ),
     ],
 )
 def test_cfpq(
-    cfg_str,
-    graph_edges,
-    expected_cfpq,
-    expected_res_alg,
-    start_nodes,
-    final_nodes,
-    alg_type,
+    cfg_str, graph_edges, expected_cfpq, expected_hellings, start_nodes, final_nodes
 ):
     cfg = CFG.from_text(cfg_str)
     graph = MultiDiGraph()
     graph.add_edges_from(graph_edges)
-    for alg in alg_type:
-        res_cfpq = cfpq(graph, cfg, start_nodes, final_nodes, alg_type=alg)
-        if alg == "hellings":
-            res_alg = hellings(graph, cfg)
-        else:
-            res_alg = matrix(graph, cfg)
-        assert res_cfpq == expected_cfpq
-        assert set(res_alg) == set(expected_res_alg)
+    res_cfpq = cfpq(graph, cfg, start_nodes, final_nodes)
+    res_helligns = hellings(graph, cfg)
+    assert res_cfpq == expected_cfpq
+    assert res_helligns == expected_hellings
