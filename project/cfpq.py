@@ -1,8 +1,11 @@
 from networkx import MultiDiGraph
 from pyformlang.cfg import Variable
-from scipy.sparse import dok_array, eye
+from scipy.sparse import dok_array, eye, lil_matrix
 
+from project import create_nfa_by_graph, BoolAutomaton
 from project.cfg_utils import *
+from project.ecfg import ECFG
+from project.rsm import RSM
 
 
 def cfpq(
@@ -27,6 +30,12 @@ def cfpq(
         return {
             (u, v)
             for (V, u, v) in matrix(graph, cfg)
+            if V == start_symbol and u in start_nodes and v in final_nodes
+        }
+    elif alg_type == "tensor":
+        return {
+            (u, v)
+            for (V, u, v) in tensor(graph, cfg)
             if V == start_symbol and u in start_nodes and v in final_nodes
         }
 
@@ -113,3 +122,62 @@ def matrix(graph: MultiDiGraph, cfg: CFG):
         for i, j in zip(*adj.nonzero()):
             result.append((N, nodes[i], nodes[j]))
     return result
+
+
+def tensor(graph: MultiDiGraph, cfg: CFG):
+    bool_mtx_rsm = BoolAutomaton(
+        RSM.ecfg_to_rsm(ECFG.from_cfg(cfg)).minimize().merge_boxes_to_single_nfa()
+    )
+    bool_mtx_graph = BoolAutomaton(create_nfa_by_graph(graph))
+    identity_matrix = eye(bool_mtx_graph.number_of_states, format="dok", dtype=bool)
+    for nonterm in cfg.get_nullable_symbols():
+        if nonterm.value in bool_mtx_graph.edges.keys():
+            bool_mtx_graph.edges[nonterm.value] += identity_matrix
+        else:
+            bool_mtx_graph.edges[nonterm.value] = identity_matrix
+
+    last_transitive_closure_idxs_len = 0
+
+    while True:
+        transitive_closure_idxs = list(
+            zip(*bool_mtx_rsm.intersect(bool_mtx_graph).transitive_closure().nonzero())
+        )
+        if len(transitive_closure_idxs) == last_transitive_closure_idxs_len:
+            break
+        last_transitive_closure_idxs_len = len(transitive_closure_idxs)
+        for (i, j) in transitive_closure_idxs:
+            r_i, r_j = (
+                i // bool_mtx_graph.number_of_states,
+                j // bool_mtx_graph.number_of_states,
+            )
+            g_i, g_j = (
+                i % bool_mtx_graph.number_of_states,
+                j % bool_mtx_graph.number_of_states,
+            )
+            state_from = bool_mtx_rsm.number_state[r_i]
+            state_to = bool_mtx_rsm.number_state[r_j]
+            nonterm, _ = state_from.value
+            if (
+                state_from in bool_mtx_rsm.start_states
+                and state_to in bool_mtx_rsm.final_states
+            ):
+                if nonterm.value in bool_mtx_graph.edges.keys():
+                    bool_mtx_graph.edges[nonterm][g_i, g_j] = True
+                else:
+                    bool_mtx_graph.edges[nonterm] = lil_matrix(
+                        (
+                            bool_mtx_graph.number_of_states,
+                            bool_mtx_graph.number_of_states,
+                        ),
+                        dtype=bool,
+                    )
+                    bool_mtx_graph.edges[nonterm][g_i, g_j] = True
+    return {
+        (
+            nonterm,
+            bool_mtx_graph.number_state[graph_i],
+            bool_mtx_graph.number_state[graph_j],
+        )
+        for nonterm, mtx in bool_mtx_graph.edges.items()
+        for graph_i, graph_j in zip(*mtx.nonzero())
+    }
