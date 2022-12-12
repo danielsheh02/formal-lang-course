@@ -14,12 +14,12 @@ def cfpq(
     start_nodes: set = None,
     final_nodes: set = None,
     start_symbol: Variable = Variable("S"),
-    alg_type: str = "hellings",
 ):
     if start_nodes is None:
         start_nodes = graph.nodes
     if final_nodes is None:
         final_nodes = graph.nodes
+
     if alg_type == "hellings":
         return {
             (u, v)
@@ -78,6 +78,7 @@ def hellings(graph: MultiDiGraph, cfg: CFG):
                         r.append(closure)
                         m.append(closure)
     return r
+
 
 
 def matrix(graph: MultiDiGraph, cfg: CFG):
@@ -181,3 +182,4 @@ def tensor(graph: MultiDiGraph, cfg: CFG):
         for nonterm, mtx in bool_mtx_graph.edges.items()
         for graph_i, graph_j in zip(*mtx.nonzero())
     }
+

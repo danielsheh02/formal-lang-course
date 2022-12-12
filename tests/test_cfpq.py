@@ -4,16 +4,17 @@ from project.cfpq import *
 
 
 @pytest.mark.parametrize(
+
     "cfg_str, graph_edges, expected_cfpq, start_nodes, final_nodes, alg_type",
     [
         (
             """
-                            S -> A B
-                            S -> A C
-                            C -> S B
-                            A -> a
-                            B -> b
-                        """,
+                        S -> A B
+                        S -> A C
+                        C -> S B
+                        A -> a
+                        B -> b
+                    """,
             [
                 (0, 1, {"label": "a"}),
                 (1, 2, {"label": "a"}),
@@ -25,15 +26,16 @@ from project.cfpq import *
             None,
             None,
             {"hellings", "matrix", "tensor"},
+
         ),
         (
             """
-                            S -> A B
-                            S -> A C
-                            C -> S B
-                            A -> a
-                            B -> b
-                        """,
+                        S -> A B
+                        S -> A C
+                        C -> S B
+                        A -> a
+                        B -> b
+                    """,
             [
                 (0, 1, {"label": "a"}),
                 (1, 2, {"label": "a"}),
@@ -55,6 +57,7 @@ def test_cfpq(
     start_nodes,
     final_nodes,
     alg_type,
+
 ):
     cfg = CFG.from_text(cfg_str)
     graph = MultiDiGraph()
