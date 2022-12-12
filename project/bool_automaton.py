@@ -13,6 +13,10 @@ class BoolAutomaton:
         self.state_number = {
             state: index for index, state in enumerate(automaton.states)
         }
+        self.number_state = dict()
+        self.number_state = {
+            index: state for index, state in enumerate(automaton.states)
+        }
 
         transitions = automaton.to_dict()
 
