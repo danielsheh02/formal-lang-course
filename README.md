@@ -108,3 +108,132 @@
 - Вадим Абзалов [@vdshk](https://github.com/vdshk)
 - Рустам Азимов [@rustam-azimov](https://github.com/rustam-azimov)
 - Екатерина Шеметова [@katyacyfra](https://github.com/katyacyfra)
+
+
+## Язык запросов к графам
+
+### Абстрактный синтаксис
+
+```
+prog = List<stmt>
+
+stmt =
+    bind of var * expr
+  | print of expr
+
+val =
+    String of string
+  | Int of int
+  | Bool of bool
+
+expr =
+    Var of var                   // переменные
+  | Val of val                   // константы
+  | Set_start of Set<val> * expr // задать множество стартовых состояний
+  | Set_final of Set<val> * expr // задать множество финальных состояний
+  | Add_start of Set<val> * expr // добавить состояния в множество стартовых
+  | Add_final of Set<val> * expr // добавить состояния в множество финальных
+  | Get_start of expr            // получить множество стартовых состояний
+  | Get_final of expr            // получить множество финальных состояний
+  | Get_reachable of expr        // получить все пары достижимых вершин
+  | Get_vertices of expr         // получить все вершины
+  | Get_edges of expr            // получить все рёбра
+  | Get_labels of expr           // получить все метки
+  | Map of lambda * expr         // классический map
+  | Filter of lambda * expr      // классический filter
+  | Load of path                 // загрузка графа
+  | Intersect of expr * expr     // пересечение языков
+  | Concat of expr * expr        // конкатенация языков
+  | Union of expr * expr         // объединение языков
+  | Star of expr                 // замыкание языков (звезда Клини)
+  | Smb of expr                  // единичный переход
+  | Cfg of str                   // КС-грамматика
+
+lambda =
+    Lambda of List<var> * expr
+```
+
+### Конкретный синтаксис
+
+```
+program -> stmt ; program | eps
+
+stmt -> var = expr | print(expr)
+
+expr ->
+    var
+  | val
+  | map
+  | filter
+  | intersection
+  | concat
+  | union
+  | star
+  | graph
+
+lowercase -> [a-z]
+uppercase -> [A-Z]
+digit -> [0-9]
+int -> [1-9] digit* | 0
+boolean -> false | true
+
+string -> ( _ | . | uppercase | lowercase) ( _ | . | uppercase | lowercase | digit )*
+path -> "( / | string )+"
+
+var -> string
+val ->
+      "string"
+    | boolean
+    | int
+
+lambda -> fun (var) {expr}
+
+filter -> filter (lambda, expr)
+map -> map (lambda, expr)
+
+
+
+set <T> -> set(T [, T]*) | set()
+
+graph ->
+    add_start (set <vertex>, graph)
+  | add_final (set <vertex>, graph)
+  | set_start (set <vertex>, graph)
+  | set_final (set <vertex>, graph)
+  | load_graph (path)
+
+vertex -> var | int
+
+vertices ->
+    get_start (graph)
+  | get_final (graph)
+  | get_vertices (graph)
+  | set <vertex>
+
+edge -> var | (int, label, int)
+
+edges ->
+    get_edges (graph)
+  | set <edge>
+
+label ->
+      var
+    | val
+
+labels ->
+      get_labels (graph)
+    | set <label>
+```
+
+### Пример программы
+```
+let graph = load_graph ("some_path"); // загрузить граф по указанному пути
+let graph1 = set_start (get_vertices (graph), graph); // получение вершин и назначение их стартовыми
+let graph2 = set_final (get_start (graph1), graph1); // получение стартовых вершин и назначение их финальными
+
+let query = star (union ("a", star ("b"), star ("c"))); // создание запроса
+
+let intersection = intersect (graph2, query); // набор вершин удовлетворяющих запросу
+
+print (intersection); // печать
+```
